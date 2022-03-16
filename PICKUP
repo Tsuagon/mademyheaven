@@ -1,0 +1,520 @@
+--- [[ Made in Heaven's Time Acceleration ]] ---
+-- by fo43123
+
+--Moveset--
+
+--F: Time Acceleration Dash
+
+--V: Speedy Teleport
+
+--Y: "You were one step too late... Kujo Jotaro."
+
+--J: Time Stop Movement
+
+--H: Time Acceleration Dash
+
+--K: Flurry
+
+--B: Speedy Teleportation
+
+local puccitaunt = {"You were one step too late."}
+local plr = game:GetService("Players").LocalPlayer
+local me = game.Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
+local ColorCorrection = Instance.new("ColorCorrectionEffect", game:GetService("Lighting"))
+local mouse = me:GetMouse()
+local char = me.Character
+local human = char:FindFirstChild('Humanoid')
+local hd = char:FindFirstChild('Head')
+local ts = char:FindFirstChild('Torso') or char:FindFirstChild('UpperTorso')
+local ra = char:FindFirstChild('Right Arm') or char:FindFirstChild('RightUpperArm')
+local la = char:FindFirstChild('Left Arm') or char:FindFirstChild('LeftUpperArm')
+local rl = char:FindFirstChild('Right Leg') or char:FindFirstChild('RightUpperLeg')
+local ll = char:FindFirstChild('Left Leg') or char:FindFirstChild('LeftUpperLeg')
+local root = char:FindFirstChild('HumanoidRootPart')
+local rj = root:FindFirstChild('RootJoint')
+local rs = ts:FindFirstChild('Right Shoulder')
+local ls = ts:FindFirstChild('Left Shoulder')
+local rh = ts:FindFirstChild('Right Hip')
+local lh = ts:FindFirstChild('Left Hip')
+local nk = ts:FindFirstChild('Neck')
+local anim = char:FindFirstChild('Animate')
+local base = workspace:FindFirstChild('Baseplate') or workspace:FindFirstChild('Base')
+local cantimestop = true
+local cooldown = false
+local cc = workspace.CurrentCamera
+local cos = math.cos
+local sin = math.sin
+local rad = math.rad
+local rand = math.random
+local cfn = CFrame.new
+local cfa = CFrame.Angles
+local v3 = Vector3.new
+local str = string
+local unfreeze = {}
+local health = {}
+local connect = {}
+universe_accel = 1
+speed_accel = 1
+sound_accel = 1
+local sine = 0
+local effects = nil
+human.WalkSpeed = 16
+function MultiTween(Inst, Type, To, Time, Direction)	
+	local Dir = nil
+	if Direction == nil then Dir = Enum.EasingDirection.Out else Dir = Direction end
+	local Table = {}; Table[Type] = To
+	local Info = TweenInfo.new(Time, Enum.EasingStyle.Sine, Dir)
+	local Tween = TweenService:Create(Inst, Info, Table); Tween:Play()
+	return Tween
+end
+
+local TimeMovement = Instance.new("Sound", hd)
+TimeMovement.SoundId = "rbxassetid://4388882427"
+TimeMovement.Volume = 1
+TimeMovement.Name = "TimeMovement"
+
+local timeaccelsfx = Instance.new("Sound", hd)
+timeaccelsfx.SoundId = "rbxassetid://3782476462"
+timeaccelsfx.Volume = 5
+timeaccelsfx.Name = "timeaccelsfx"
+
+local TimeAccelCharge = Instance.new("Sound", hd)
+TimeAccelCharge.SoundId = "rbxassetid://5236747402"
+TimeAccelCharge.Volume = 1
+TimeAccelCharge.Name = "TimeAccelCharge"
+TimeAccelCharge.PlaybackSpeed = 1
+
+human.WalkSpeed = 26
+
+if char:FindFirstChild('Effects') then
+	effects = char:FindFirstChild('Effects')
+else
+	effects = Instance.new('Folder', char)
+	effects.Name = 'Effects'
+end
+
+ArtificialHB = Instance.new('BindableEvent', script)
+ArtificialHB.Name = 'Heartbeat'
+script:WaitForChild('Heartbeat')
+
+frame = 1 / 60
+tf = 0
+allowframeloss = false
+tossremainder = false
+lastframe = tick()
+script.Heartbeat:Fire()
+
+game:GetService('RunService').Heartbeat:connect(function(s, p)
+	tf = tf + s
+	if tf >= frame then
+		if allowframeloss then
+			script.Heartbeat:Fire()
+			lastframe = tick()
+		else
+			for i = 1, math.floor(tf / frame) do
+				script.Heartbeat:Fire()
+			end
+			lastframe = tick()
+		end
+		if tossremainder then
+			tf = 0
+		else
+			tf = tf - frame * math.floor(tf / frame)
+		end
+	end
+end)
+
+function swait(t)
+	if t == 0 or t == nil then
+		script.Heartbeat.Event:Wait()
+	else
+		for i = 0, t do
+			script.Heartbeat.Event:Wait()
+		end
+	end
+end
+
+function sound(id, parent, vol, pitch, timepos)
+	local s = Instance.new('Sound')
+	s.Parent = parent
+	s.SoundId = id
+	s.Volume = vol
+	s.PlaybackSpeed = pitch
+	s.TimePosition = timepos
+	s:Play()
+	game.Debris:AddItem(s, s.PlaybackSpeed + 5)
+end
+
+function camshake(duration, intensity)
+	coroutine.wrap(function()
+		for i = 1, duration do
+			human.CameraOffset = hum.CameraOffset:lerp(v3(rand(-1, 1), rand(-1, 1), rand(-1, 1)), 0.1 * intensity)
+			swait()
+		end
+		human.CameraOffset = v3(0, 0, 0)
+	end)()
+end
+
+function findascendant(obj, class)
+	local par = obj
+	local ret = nil
+	pcall(function()
+		repeat
+			par = par.Parent
+			if par:IsA(class) then
+				ret = par
+				break
+			end
+		until par == nil
+	end)
+	return ret
+end
+
+local TimeStopSounds = {
+
+	TokiWa = 'rbxassetid://5872079836';
+	TimeStop = 'rbxassetid://4095610922';
+	TimeResume = 'rbxassetid://5204729447';
+
+}
+
+
+function Teleport()
+	for i, v in pairs(char:GetChildren()) do
+		if v:IsA("BasePart") then
+			local trace = Instance.new("Part",game.Workspace)
+			trace.Size = v.Size
+			trace.Position = v.Position
+			trace.CFrame = v.CFrame
+			trace.Anchored = true
+			trace.CanCollide = false
+			trace.BrickColor = BrickColor.new("White")
+			trace.Material = "Neon"
+			coroutine.resume(coroutine.create(function()
+				for i = 0,1,.1 do
+					swait()
+					trace.Transparency = i
+				end
+				trace:Destroy()
+			end))
+		end
+	end
+end
+
+function timeaccel()
+	sound(TimeStopSounds.TokiWa, ts, 5, 1, 0)
+	wait(1.4)
+	sound(TimeStopSounds.TimeStop, ts, 5, 1, 0)
+	cantimestop = false
+	universe_accel = 2
+	TimeAccelCharge:Play()
+	coroutine.wrap(function()
+		TweenService:Create(workspace.CurrentCamera, TweenInfo.new(0.5), {FieldOfView = 85}):Play()
+		TweenService:Create(game:GetService("Lighting").ColorCorrection, TweenInfo.new(0.8), {Saturation = 0}):Play()
+		TweenService:Create(game:GetService("Lighting").ColorCorrection, TweenInfo.new(0.8), {Contrast = -2}):Play()
+		local blur = Instance.new("BlurEffect", game:GetService("Lighting"))
+		TweenService:Create(blur, TweenInfo.new(0.8), {Size = 10}):Play()
+		wait(0.5)
+		TweenService:Create(workspace.CurrentCamera, TweenInfo.new(0.5), {FieldOfView = 70}):Play()
+		TweenService:Create(game:GetService("Lighting").ColorCorrection, TweenInfo.new(0.8), {Saturation = 0}):Play()
+		TweenService:Create(game:GetService("Lighting").ColorCorrection, TweenInfo.new(0.8), {Contrast = 0}):Play()
+		TweenService:Create(blur, TweenInfo.new(0.8), {Size = 0}):Play()
+		coroutine.wrap(function()
+			while universe_accel == 2 do
+				game:GetService("RunService").Heartbeat:Wait()
+				game.Lighting.ClockTime = game.Lighting.ClockTime + .1
+			end
+		end)()
+		wait(1)
+		speed_accel = 2
+		coroutine.wrap(function()
+			while speed_accel == 2 do
+				game:GetService("RunService").Heartbeat:Wait()
+				human.WalkSpeed = human.WalkSpeed + 2
+			end
+		end)()
+		sound_accel = 2
+		coroutine.wrap(function()
+			while sound_accel == 2 do
+				game:GetService("RunService").Heartbeat:Wait()
+				for i,v in pairs(game:GetDescendants()) do
+					if v:IsA("Sound") and v.Name ~="timeaccelsfx" and v.Name ~="TimeAccelCharge" and v.Name ~="SpeedBass1" and v.Name ~="SpeedBass2" and v.Name ~="TooLate" then
+						v.PlaybackSpeed = v.PlaybackSpeed + .001
+					end
+				end
+			end
+		end)()
+		wait(25)
+		for i,v in pairs(game:GetDescendants()) do
+			if v:IsA("Sound") and v.Name ~="timeaccelsfx" and v.Name ~="TimeAccelCharge" and v.Name ~="SpeedBass1" and v.Name ~="SpeedBass2" and v.Name ~="TooLate" then
+				v.PlaybackSpeed = 1
+			end
+		end
+		human.WalkSpeed = 23
+		universe_accel = 1
+		sound_accel = 1
+		speed_accel = 1
+		TimeAccelCharge:Stop()
+	end)()
+end
+
+function timestopmovement(key)
+	key = key:lower()
+	if key == "j" then
+		wait()
+		TimeMovement:Play()
+		function descend(obj,class,func)
+			for i,v in pairs(obj:GetChildren()) do
+				if v:IsA(class) then
+					func(v)
+				end
+				descend(v,class,func)
+			end
+		end
+		local pls = game:GetService("Players").LocalPlayer
+		function initiateCharacter(char)
+			if not char then return end
+			wait()
+			descend(char,"BasePart",function(obj)
+
+				obj.Anchored = false
+				obj.Changed:connect(function()
+					if obj.Anchored then
+						obj.Anchored = false
+					end
+				end)
+			end)
+			descend(char,"Humanoid",function(obj)
+				obj.WalkSpeed = 26
+				obj.Changed:connect(function()
+					if obj.WalkSpeed == 0 then
+						obj.WalkSpeed = 26
+					end
+				end)
+			end)
+		end
+		initiateCharacter(pls.Character)
+		pls.CharacterAdded:connect(function(c)
+			initiateCharacter(c)
+		end)
+	end
+end
+mouse.KeyDown:Connect(timestopmovement)
+
+function timeskip(key)
+	key = key:lower()
+	if key == "v" then
+		local root = plr.Character.HumanoidRootPart
+		local pos = mouse.Hit.Position+Vector3.new(0,2.5,0)
+		local offset = pos-root.Position
+		root.CFrame = root.CFrame+offset
+		song = Instance.new("Sound", hd)
+		song.SoundId = "rbxassetid://6759980915" 
+		song.Playing = true
+		song.Looped = false
+		song.Volume = 1
+		song.Name = "SpeedBass1Ithink"
+		TweenService:Create(game:GetService("Lighting").ColorCorrection, TweenInfo.new(0.2), {Brightness = 1}):Play();
+		wait(.1)
+		TweenService:Create(game:GetService("Lighting").ColorCorrection, TweenInfo.new(0.2), {Brightness = 0}):Play();
+	end
+end
+mouse.KeyDown:Connect(timeskip)
+
+function onestep(key)
+	key = key:lower()
+	if key == "y" then
+		if mouse.Target and mouse.Target.Parent:FindFirstChild("Humanoid") then
+			local horp = mouse.Target.Parent:FindFirstChild("HumanoidRootPart")
+			local char = mouse.Target.Parent
+			song = Instance.new("Sound", hd)
+			song.SoundId = "rbxassetid://6759981774" 
+			song.Playing = true
+			song.Looped = false
+			song.Volume = 1
+			song.Name = "SpeedBass1"
+			Teleport()
+			root.CFrame = horp.CFrame + horp.CFrame.lookVector * -12
+			wait(.1)
+			Teleport()
+			root.CFrame = horp.CFrame + horp.CFrame.lookVector * 12
+			wait(.1)
+			Teleport()
+			root.CFrame = horp.CFrame + horp.CFrame.lookVector * -12
+			wait(.1)
+			Teleport()
+			root.CFrame = horp.CFrame + horp.CFrame.lookVector * -12
+			wait(.1)
+			Teleport()
+			root.CFrame = horp.CFrame + horp.CFrame.lookVector * -14
+			wait(.1)
+			Teleport()
+			root.CFrame = horp.CFrame + horp.CFrame.lookVector * 14
+		end
+	end
+end
+mouse.KeyDown:Connect(onestep)
+
+function speedteleport(key)
+	key = key:lower()
+	if key == "b" then
+		local root = plr.Character.HumanoidRootPart
+		local pos = mouse.Hit.Position+Vector3.new(0,2.5,0)
+		local offset = pos-root.Position
+		song = Instance.new("Sound", hd)
+		song.SoundId = "rbxassetid://6759980915" 
+		song.Playing = true
+		song.Looped = false
+		song.Volume = 1
+		song.Name = "SpeedBass1Ithink"
+		root.CFrame = root.CFrame * CFrame.new(45.5, 0, 45.5);
+		wait(0.001)
+		song = Instance.new("Sound", hd)
+		song.SoundId = "rbxassetid://6759980915" 
+		song.Playing = true
+		song.Looped = false
+		song.Volume = 1
+		song.Name = "SpeedBass1Ithink"
+		root.CFrame = root.CFrame * CFrame.new(-45.5, 0, -45.5);
+		Teleport()
+		wait(0.001)
+		song = Instance.new("Sound", hd)
+		song.SoundId = "rbxassetid://6759980915" 
+		song.Playing = true
+		song.Looped = false
+		song.Volume = 1
+		song.Name = "SpeedBass1Ithink"
+		root.CFrame = root.CFrame * CFrame.new(25, 0, 25);
+		Teleport()
+		wait(0.001)
+		song = Instance.new("Sound", hd)
+		song.SoundId = "rbxassetid://6759980915" 
+		song.Playing = true
+		song.Looped = false
+		song.Volume = 1
+		song.Name = "SpeedBass1Ithink"
+		root.CFrame = root.CFrame * CFrame.new(-25, 0, -25);
+		Teleport()
+		wait(0.001)
+		song = Instance.new("Sound", hd)
+		song.SoundId = "rbxassetid://6759980915" 
+		song.Playing = true
+		song.Looped = false
+		song.Volume = 1
+		song.Name = "SpeedBass1Ithink"
+		root.CFrame = root.CFrame * CFrame.new(25, 0, 25);
+		Teleport()
+		wait(0.001)
+		song = Instance.new("Sound", hd)
+		song.SoundId = "rbxassetid://6759980915" 
+		song.Playing = true
+		song.Looped = false
+		song.Volume = 1
+		song.Name = "SpeedBass1Ithink"
+		root.CFrame = root.CFrame * CFrame.new(-25, 0, -25);
+		Teleport()
+		wait(0.001)
+		song = Instance.new("Sound", hd)
+		song.SoundId = "rbxassetid://6759980915" 
+		song.Playing = true
+		song.Looped = false
+		song.Volume = 1
+		song.Name = "SpeedBass1Ithink"
+		root.CFrame = root.CFrame * CFrame.new(25, 0, 25);
+		Teleport()
+		wait(0.001)
+		song = Instance.new("Sound", hd)
+		song.SoundId = "rbxassetid://6759980915" 
+		song.Playing = true
+		song.Looped = false
+		song.Volume = 1
+		song.Name = "SpeedBass1Ithink"
+		root.CFrame = root.CFrame * CFrame.new(-25, 0, -25);
+		Teleport()
+		wait(0.001)
+		song = Instance.new("Sound", hd)
+		song.SoundId = "rbxassetid://6759980915" 
+		song.Playing = true
+		song.Looped = false
+		song.Volume = 1
+		song.Name = "SpeedBass1Ithink"
+		root.CFrame = root.CFrame * CFrame.new(25, 0, 25);
+		Teleport()
+		wait(0.001)
+		song = Instance.new("Sound", hd)
+		song.SoundId = "rbxassetid://6759980915" 
+		song.Playing = true
+		song.Looped = false
+		song.Volume = 1
+		song.Name = "SpeedBass1Ithink"
+		root.CFrame = root.CFrame * CFrame.new(-25, 0, -25);
+		Teleport()
+	end
+end
+mouse.KeyDown:Connect(speedteleport)
+
+function flurry(key)
+	key = key:lower()
+	if key == "k" then
+		local root = plr.Character.HumanoidRootPart
+		local pos = mouse.Hit.Position+Vector3.new(0,2.5,0)
+		local offset = pos-root.Position
+		song = Instance.new("Sound", hd)
+		song.SoundId = "rbxassetid://6515717585" 
+		song.Playing = true
+		song.Looped = false
+		song.Volume = 1
+		song.Name = "FlurryThingy"
+		Teleport()
+		root.CFrame = root.CFrame * CFrame.new(45.5, 0, 45.5);
+		wait(0.3)
+		Teleport()
+		root.CFrame = root.CFrame * CFrame.new(-45.5, 0, -45.5);
+		wait(0.1)
+		Teleport()
+		root.CFrame = root.CFrame * CFrame.new(25, 0, 25);
+		wait(0.1)
+		Teleport()
+		root.CFrame = root.CFrame * CFrame.new(-25, 0, -25);
+		wait(0.1)
+		Teleport()
+		root.CFrame = root.CFrame * CFrame.new(25, 0, 25);
+		wait(0.1)
+		Teleport()
+		root.CFrame = root.CFrame * CFrame.new(-25, 0, -25);
+		wait(0.1)
+		Teleport()
+		root.CFrame = root.CFrame * CFrame.new(25, 0, 25);
+		wait(0.3)
+		Teleport()
+		root.CFrame = root.CFrame + root.CFrame.lookVector*60
+	end
+end
+mouse.KeyDown:Connect(flurry)
+
+function timedash(key)
+	key = key:lower()
+	if key == "h" then
+		song = Instance.new("Sound", hd)
+		song.SoundId = "rbxassetid://5943712660" 
+		song.Playing = true
+		song.Looped = false
+		song.Volume = 1
+		song.Name = "SpeedBass2"
+		Teleport()
+		local boopyve = Instance.new("BodyVelocity")
+		boopyve.MaxForce = Vector3.new(100000, 0, 100000)
+		boopyve.P = math.huge
+		boopyve.Velocity = root.CFrame.lookVector * 150
+		boopyve.Parent = char.HumanoidRootPart
+		game.Debris:AddItem(boopyve, 0.25)
+	end
+end
+mouse.KeyDown:Connect(timedash)
+
+mouse.KeyDown:connect(function(key)
+	if str.lower(key) == 'f' then
+		timeaccel()
+	end
+end)
